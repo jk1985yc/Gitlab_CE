@@ -1,0 +1,39 @@
+gitlab:
+    image: gitlab/gitlab-ce:11.3.6-ce.0
+    restart: always
+    hostname: 'gitlab'
+    environment:
+        GITLAB_OMNIBUS_CONFIG: |
+            external_url 'https://192.168.88.129:20443'
+            nginx['redirect_http_to_https'] = true
+            letsencrypt['enable'] = false
+            nginx['ssl_certificate'] = "/etc/gitlab/gitlab.crt"
+            nginx['ssl_certificate_key'] = "/etc/gitlab/gitlab.key"
+            # Add any other gitlab.rb configuration here, each on its own line
+            gitlab_rails['ldap_enabled'] = true
+            gitlab_rails['ldap_servers'] = YAML.load <<-'EOS'
+               main: # 'main' is the GitLab 'provider ID' of this LDAP server 
+                  label: 'LDAP'
+                  host: '172.17.0.1'
+                  port: 389
+                  uid: 'sAMAccountName'
+                  bind_dn: 'cn=admin,dc=example,dc=com'
+                  password: 'example'
+                  encryption: 'plain' # "start_tls" or "simple_tls" or "plain" 
+                  verify_certificates: false
+                  active_directory: false
+                  allow_username_or_email_login: true
+                  lowercase_usernames: false
+                  block_auto_created_users: false
+                  base: 'OU=users,dc=example,dc=com'
+                  user_filter: ''
+            EOS
+
+
+    ports:
+        - 20443:20443
+    volumes:
+        - ./data:/var/opt/gitlab
+        - ./logs:/var/log/gitlab
+        - ./ssl:/etc/gitlab
+    env_file: .env
