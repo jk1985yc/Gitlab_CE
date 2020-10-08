@@ -28,12 +28,9 @@ gitlab:
                   base: 'OU=users,dc=example,dc=com'
                   user_filter: ''
             EOS
-
-
     ports:
         - 20443:20443
     volumes:
         - ./data:/var/opt/gitlab
         - ./logs:/var/log/gitlab
         - ./ssl:/etc/gitlab
-    env_file: .env
